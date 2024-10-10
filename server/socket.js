@@ -22,20 +22,14 @@ export const setupSocket = (server) => {
   };
 
   const sendMessage = async (message) => {
-    console.log("message",message)
-      const senderSocketId = userSocketMap.get(message.sender);
-      const recipientSocketId = userSocketMap.get(message.recipient);
-      console.log("messageSender",userSocketMap.get(message.sender))
-      console.log("messagerec",userSocketMap.get(message.recipient))
-      console.log(userSocketMap)
+    const senderSocketId = userSocketMap.get(message.sender);
+    const recipientSocketId = userSocketMap.get(message.recipient);
 
     const createdMessage = await Message.create(message);
-
 
     const messageData = await Message.findById(createdMessage._id)
       .populate("sender", "id email firstName lastName image color")
       .populate("recipient", "id email firstName lastName image color");
-
 
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("receiveMessage", messageData);
