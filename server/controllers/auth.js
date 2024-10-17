@@ -170,7 +170,7 @@ export const addProfileImage = async (req, res, next) => {
       return res.status(400).send("File is required.");
     }
 
-    const date =  new Date().toISOString();
+    const date = new Date().toISOString();
     const fileName = "uploads/profiles/" + date + req.file.originalname;
 
     fs.renameSync(req.file.path, fileName);

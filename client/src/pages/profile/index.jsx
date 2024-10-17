@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-key */
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/store";
@@ -59,6 +58,7 @@ export const Profile = () => {
           { withCredentials: true }
         );
         if (response.status === 200 && response.data) {
+          console.log({...response.data})
           setUserInfo({ ...response.data });
           toast.success("Profile updated successfully");
           navigate("/chat");
@@ -95,11 +95,12 @@ export const Profile = () => {
         toast.success("Image Updated Successfully");
       }
       const reader = new FileReader();
-      console.log(reader.result);
       reader.onload = () => {
         setImage(reader.result);
       };
+      
       reader.readAsDataURL(file);
+      console.log("reader" , reader)
     }
   };
 
