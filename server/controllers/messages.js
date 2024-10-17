@@ -1,7 +1,7 @@
 import { Message } from "../models/message.js";
 
 export const getMessages = async (req, res, next) => {
-  const {user} = req.user
+  const { user } = req.user;
   const user1 = user._id;
   const user2 = req.body.id;
   try {

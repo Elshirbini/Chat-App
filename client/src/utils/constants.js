@@ -12,5 +12,5 @@ export const CONTACTS_ROUTES = "/api/contacts";
 export const SEARCH_CONTACTS_ROUTES = `${CONTACTS_ROUTES}/search`;
 export const GET_DM_CONTACTS_ROUTES = `${CONTACTS_ROUTES}/get-contacts-for-dm`;
 
-export const MESSAGES_ROUTES = "api/messages";
+export const MESSAGES_ROUTES = "/api/messages";
 export const GET_ALL_MESSAGES_ROUTE = `${MESSAGES_ROUTES}/get-messages`;
