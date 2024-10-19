@@ -8,7 +8,7 @@ export const createChatSlice = (set, get) => ({
   setSelectedChatMessages: (selectedChatMessages) =>
     set({ selectedChatMessages }),
   setDirectMessagesContacts: (directMessagesContacts) => {
-    set(directMessagesContacts);
+    set({ directMessagesContacts });
   },
   closeChat: () =>
     set({

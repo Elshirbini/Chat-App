@@ -22,11 +22,11 @@ export const ContactList = ({ contacts, isChannel = false }) => {
       setSelectedChatMessages([]);
     }
   };
-
+  
   return (
-    <div className="mt-5">
+      <div className="mt-5">
       {contacts.map((contact) => (
-        <div
+          <div
           key={contact._id}
           className={`pl-10 py-2 transition-all duration-300 cursor-pointer ${
             selectedChatData && selectedChatData._id === contact._id
