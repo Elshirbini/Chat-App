@@ -59,21 +59,21 @@ export const getContactForDMList = async (req, res, next) => {
           from: "users",
           localField: "_id",
           foreignField: "_id",
-          as: "contactInfo",
+          as: "profile",
         },
       },
       {
-        $unwind: "$contactInfo",
+        $unwind: "$profile",
       },
       {
         $project: {
           _id: 1,
           lastMessageTime: 1,
-          email: "$contactInfo.email",
-          firstName: "$contactInfo.firstName",
-          lastName: "$contactInfo.lastName",
-          image: "$contactInfo.image",
-          color: "$contactInfo.color",
+          email: "$profile.email",
+          firstName: "$profile.firstName",
+          lastName: "$profile.lastName",
+          image: "$profile.image",
+          color: "$profile.color",
         },
       },
       {

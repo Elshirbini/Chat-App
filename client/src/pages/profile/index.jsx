@@ -58,7 +58,7 @@ export const Profile = () => {
           { withCredentials: true }
         );
         if (response.status === 200 && response.data) {
-          console.log({...response.data})
+          console.log({ ...response.data });
           setUserInfo({ ...response.data });
           toast.success("Profile updated successfully");
           navigate("/chat");
@@ -91,16 +91,18 @@ export const Profile = () => {
         withCredentials: true,
       });
       if (response.status === 200 && response.data.image) {
+        console.log("response", response.data.image);
         setUserInfo({ ...userInfo, image: response.data.image });
         toast.success("Image Updated Successfully");
       }
+      console.log("userInfo", userInfo);
       const reader = new FileReader();
       reader.onload = () => {
         setImage(reader.result);
       };
-      
+
       reader.readAsDataURL(file);
-      console.log("reader" , reader)
+      console.log("reader", reader);
     }
   };
 
@@ -167,7 +169,7 @@ export const Profile = () => {
               className="hidden"
               onChange={handleImageChange}
               name="profile-image"
-              accept=".png, .jpg, .jpeg, .svg, .webp"
+              accept=".jpg, .jpeg, .png"
             />
           </div>
           <div className="flex min-w-32 md:min-w-64 flex-col gap-5 text-white items-center justify-center">
