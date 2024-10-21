@@ -3,7 +3,6 @@ import { useSocket } from "@/context/SocketContext";
 import { apiClient } from "@/lib/api-client";
 import { useAppStore } from "@/store";
 import { UPLOAD_FILE_ROUTE } from "@/utils/constants";
-import { data } from "autoprefixer";
 import EmojiPicker from "emoji-picker-react";
 import React, { useEffect, useRef, useState } from "react";
 import { GrAttachment } from "react-icons/gr";
