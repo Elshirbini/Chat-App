@@ -25,7 +25,6 @@ export const getMessages = async (req, res, next) => {
 };
 
 export const uploadFile = async (req, res, next) => {
-  const { user } = req.user;
   try {
     if (!req.file) {
       return res.status(400).send("File is required");

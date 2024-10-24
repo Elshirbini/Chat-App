@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Channel } from "../models/channel.js";
 import { User } from "../models/user.js";
 
@@ -24,6 +25,22 @@ export const createChannel = async (req, res, next) => {
     });
     newChannel.save();
     return res.status(201).json({ channel: newChannel });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getUserChannels = async (req, res, next) => {
+  try {
+    const { user } = req.user;
+    const userId = new mongoose.Types.ObjectId(user._id);
+    const channels = await Channel.find({
+      $or: [{ admin: userId }, { members: userId }],
+    }).sort({ updatedAt: -1 });
+    return res.status(200).json({ channels });
   } catch (error) {
     console.log(error);
     res.status(500).json({
