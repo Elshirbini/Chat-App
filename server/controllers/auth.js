@@ -9,19 +9,14 @@ export const signup = async (req, res, next) => {
   try {
     const { email, password, confirmPassword } = req.body;
     const errors = validationResult(req);
-    if (!email || !password || !confirmPassword) {
-      return res.status(400).json({
-        message: "Email and password and confirm password is required",
-      });
-    }
-    if (password !== confirmPassword) {
-      return res
-        .status(400)
-        .send("Password and confirm password should be equal");
-    }
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+    // if (password !== confirmPassword) {
+    //   return res
+    //     .status(400)
+    //     .send("Password and confirm password should be equal");
+    // }
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = new User({
       email: email,
