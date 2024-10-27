@@ -35,8 +35,6 @@ router.post(
       .withMessage("Password length should be from 5 to 10 chars")
       .isAlphanumeric()
       .withMessage("Password should be numbers and alphabets")
-      // .matches(/[!@#$%^&*]/)
-      // .withMessage("Password should have special chars")
       .trim(),
   ],
   signup
