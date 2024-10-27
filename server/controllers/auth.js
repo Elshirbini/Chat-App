@@ -2,18 +2,26 @@ import bcrypt from "bcrypt";
 import { User } from "../models/user.js";
 import jwt from "jsonwebtoken";
 import fs from "fs";
-
+import { validationResult } from "express-validator";
 const maxAge = 3 * 24 * 60 * 1000;
 
 export const signup = async (req, res, next) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({
-      message: "Email and password is required",
-    });
-  }
   try {
+    const { email, password, confirmPassword } = req.body;
+    const errors = validationResult(req);
+    if (!email || !password || !confirmPassword) {
+      return res.status(400).json({
+        message: "Email and password and confirm password is required",
+      });
+    }
+    if (password !== confirmPassword) {
+      return res
+        .status(400)
+        .send("Password and confirm password should be equal");
+    }
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = new User({
       email: email,
@@ -212,14 +220,14 @@ export const deleteProfileImage = async (req, res, next) => {
   }
 };
 
-export const logout = async(req,res,next) => {
+export const logout = async (req, res, next) => {
   try {
-    res.cookie('jwt' , '' , {maxAge : 1 , secure : true , sameSite:'None'})
-    return res.status(200).send('Logout Successfully')
+    res.cookie("jwt", "", { maxAge: 1, secure: true, sameSite: "None" });
+    return res.status(200).send("Logout Successfully");
   } catch (error) {
     console.log(error);
     res.status(500).json({
       message: "Internal server error",
     });
   }
-}
+};
