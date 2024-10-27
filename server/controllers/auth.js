@@ -9,14 +9,14 @@ export const signup = async (req, res, next) => {
   try {
     const { email, password, confirmPassword } = req.body;
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
     // if (password !== confirmPassword) {
     //   return res
     //     .status(400)
     //     .send("Password and confirm password should be equal");
     // }
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = new User({
       email: email,
@@ -132,22 +132,16 @@ export const updateProfile = async (req, res, next) => {
     if (!firstName || !lastName) {
       return res.status(400).send("First name and  last name is required.");
     }
-    // const userData = User.findByIdAndUpdate(
-    //   user._id,
-    //   {
-    //     firstName,
-    //     lastName,
-    //     color,
-    //     profileSetup: true,
-    //   },
-    //   { new: true, runValidators: true }
-    // );
-    const userData = await User.findById(user._id);
-    userData.firstName = firstName;
-    userData.lastName = lastName;
-    userData.color = color;
-    userData.profileSetup = true;
-    userData.save();
+    const userData = await User.findByIdAndUpdate(
+      user._id,
+      {
+        firstName,
+        lastName,
+        color,
+        profileSetup: true,
+      },
+      { new: true, runValidators: true }
+    );
 
     return res.status(200).json({
       id: userData._id,
