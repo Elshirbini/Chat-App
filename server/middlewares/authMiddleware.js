@@ -1,7 +1,10 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
-  const token = req.headers.cookie.split('jwt=')[1];
+  let token;
+  if(req.headers.cookie){
+    token = req.headers.cookie.split('jwt=')[1];
+  }
   if (!token) {
     return res.status(401).send("You are not authenticated!");
   }
