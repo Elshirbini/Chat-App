@@ -3,7 +3,16 @@ import { User } from "../models/user.js";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import { validationResult } from "express-validator";
+import nodemailer from "nodemailer";
 const maxAge = 3 * 24 * 60 * 1000;
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "ahmedalshirbini33@gmail.com",
+    pass: "rvgedkbbviilneor",
+  },
+});
 
 export const signup = async (req, res, next) => {
   try {
@@ -14,6 +23,12 @@ export const signup = async (req, res, next) => {
     //     .status(400)
     //     .send("Password and confirm password should be equal");
     // }
+    const mailOptions = {
+      from: "ahmedalshirbini33@gmail.com",
+      to: email,
+      subject: "Welcome for you in my Syncronus Chat App",
+      text: " Your account Created Successfully",
+    };
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
@@ -32,6 +47,13 @@ export const signup = async (req, res, next) => {
       maxAge,
       secure: true,
       sameSite: "None",
+    });
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
     });
     return res.status(201).json({
       user: {
