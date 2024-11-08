@@ -334,6 +334,7 @@ const MultipleSelector = React.forwardRef(
                   "px-3 py-2": selected.length === 0,
                   "ml-1": selected.length !== 0,
                 },
+
                 inputProps?.className
               )}
             />
@@ -485,4 +486,3 @@ function isOptionsExist(groupOption, targetOption) {
   }
   return false;
 }
-

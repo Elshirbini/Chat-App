@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import { validationResult } from "express-validator";
 import nodemailer from "nodemailer";
+import { cloudinary } from "../utils/cloudinary.js";
+import { url } from "inspector";
 const maxAge = 3 * 24 * 60 * 1000;
 
 const transporter = nodemailer.createTransport({
@@ -18,11 +20,11 @@ export const signup = async (req, res, next) => {
   try {
     const { email, password, confirmPassword } = req.body;
     const errors = validationResult(req);
-    // if (password !== confirmPassword) {
-    //   return res
-    //     .status(400)
-    //     .send("Password and confirm password should be equal");
-    // }
+    if (password !== confirmPassword) {
+      return res
+        .status(400)
+        .send("Password and confirm password should be equal");
+    }
     const mailOptions = {
       from: "ahmedalshirbini33@gmail.com",
       to: email,
@@ -183,23 +185,31 @@ export const updateProfile = async (req, res, next) => {
 };
 
 export const addProfileImage = async (req, res, next) => {
-  const { user } = req.user;
   try {
+    const { user } = req.user;
+    const image  = req.file.path;
+
     if (!req.file) {
       return res.status(400).send("File is required.");
     }
 
-    const date = new Date().toISOString();
-    const fileName = "uploads/profiles/" + date + req.file.originalname;
+    const result = await cloudinary.uploader.upload(image, {
+      folder: "ImageForChatUsers",
+    });
 
-    fs.renameSync(req.file.path, fileName);
-    const updatedUser = await User.findByIdAndUpdate(
+    const userDoc = await User.findByIdAndUpdate(
       user._id,
-      { image: fileName },
+      {
+        image: { public_id: result.public_id, url: result.url },
+      },
       { new: true, runValidators: true }
     );
+
     return res.status(200).json({
-      image: updatedUser.image,
+      image: {
+        public_id: userDoc.image.public_id,
+        url: userDoc.image.url,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -209,18 +219,16 @@ export const addProfileImage = async (req, res, next) => {
   }
 };
 export const deleteProfileImage = async (req, res, next) => {
-  const { user } = req.user;
   try {
-    const userData = await User.findById(user._id);
+    const { user } = req.user;
+
+    const userData = await User.findByIdAndUpdate(user._id, {
+      image: null,
+    });
     if (!userData) {
       return res.status(404).json("User not found");
     }
-
-    if (userData.image) {
-      fs.unlinkSync(userData.image);
-    }
-    userData.image = null;
-    await userData.save();
+    cloudinary.uploader.destroy(userData.image.public_id);
 
     return res.status(200).send("Profile image has been deleted.");
   } catch (error) {

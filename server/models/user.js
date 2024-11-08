@@ -21,7 +21,7 @@ const user = new Schema({
     required: false,
   },
   image: {
-    type: String,
+    type: Object,
     required: false,
   },
   color: {

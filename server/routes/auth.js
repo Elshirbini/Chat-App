@@ -9,12 +9,11 @@ import {
   logout,
 } from "../controllers/auth.js";
 import { verifyToken } from "../middlewares/authMiddleware.js";
-import multer from "multer";
 import { body } from "express-validator";
 import { User } from "../models/user.js";
-const router = express.Router();
+import { upload } from "../utils/multer.js";
 
-const upload = multer({ dest: "uploads/profiles/" });
+const router = express.Router();
 
 router.post(
   "/signup",
