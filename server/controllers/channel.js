@@ -5,8 +5,9 @@ import { User } from "../models/user.js";
 export const createChannel = async (req, res, next) => {
   try {
     const { name, members } = req.body;
-    console.log("members", members);
     const { user } = req.user;
+
+    console.log("members", members);
     const admin = await User.findById(user._id);
     if (!admin) {
       return res.status(400).send("Admin user not found.");
@@ -18,12 +19,13 @@ export const createChannel = async (req, res, next) => {
       return res.status(400).send("Some members are not valid users");
     }
 
-    const newChannel = new Channel({
+    const newChannel = await Channel.create({
       name,
       members,
       admin: user._id,
     });
-    newChannel.save();
+
+    await newChannel.save();
     return res.status(201).json({ channel: newChannel });
   } catch (error) {
     console.log(error);

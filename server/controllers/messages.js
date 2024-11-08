@@ -2,10 +2,12 @@ import { Message } from "../models/message.js";
 import fs from "fs";
 
 export const getMessages = async (req, res, next) => {
-  const { user } = req.user;
-  const user1 = user._id;
-  const user2 = req.body.id;
   try {
+    const { user } = req.user;
+    const user1 = user._id;
+    const user2 = req.body.id;
+
+    
     if (!user1 || !user2) {
       return res.status(400).send("Both user'ids are required.");
     }

@@ -1,12 +1,11 @@
 import bcrypt from "bcrypt";
 import { User } from "../models/user.js";
 import jwt from "jsonwebtoken";
-import fs from "fs";
 import { validationResult } from "express-validator";
 import nodemailer from "nodemailer";
 import { cloudinary } from "../utils/cloudinary.js";
-import { url } from "inspector";
-const maxAge = 3 * 24 * 60 * 1000;
+
+const maxAge = 3 * 24 * 60 * 60 * 1000;
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -20,6 +19,11 @@ export const signup = async (req, res, next) => {
   try {
     const { email, password, confirmPassword } = req.body;
     const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     if (password !== confirmPassword) {
       return res
         .status(400)
@@ -31,12 +35,9 @@ export const signup = async (req, res, next) => {
       subject: "Welcome for you in my Syncronus Chat App",
       text: " Your account Created Successfully",
     };
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new User({
-      email: email,
+    const user = await User.create({
+      email,
       password: hashedPassword,
     });
 
@@ -73,15 +74,14 @@ export const signup = async (req, res, next) => {
 };
 
 export const login = async (req, res, next) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({
-      message: "Email and password is required",
-    });
-  }
-
   try {
+    const { email, password } = req.body;
+  
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password is required",
+      });
+    }
     const user = await User.findOne({ email: email });
     if (!user) {
       return res.status(404).json({
@@ -125,8 +125,10 @@ export const login = async (req, res, next) => {
 };
 
 export const getUserInfo = async (req, res, next) => {
-  const { user } = req.user;
   try {
+    const { user } = req.user;
+
+
     const userData = await User.findById(user._id);
     if (!userData) {
       return res.status(404).send("User with the given id is not found");
@@ -150,9 +152,11 @@ export const getUserInfo = async (req, res, next) => {
 };
 
 export const updateProfile = async (req, res, next) => {
-  const { firstName, lastName, color } = req.body;
-  const { user } = req.user;
   try {
+    const { firstName, lastName, color } = req.body;
+    const { user } = req.user;
+
+    
     if (!firstName || !lastName) {
       return res.status(400).send("First name and  last name is required.");
     }
@@ -187,7 +191,7 @@ export const updateProfile = async (req, res, next) => {
 export const addProfileImage = async (req, res, next) => {
   try {
     const { user } = req.user;
-    const image  = req.file.path;
+    const image = req.file.path;
 
     if (!req.file) {
       return res.status(400).send("File is required.");
