@@ -1,6 +1,4 @@
-import mongoose from "mongoose";
-
-const Schema = mongoose.Schema;
+import { Schema, model } from "mongoose";
 
 const channel = new Schema(
   {
@@ -8,13 +6,11 @@ const channel = new Schema(
       type: String,
       required: true,
     },
-    members: [{ type: mongoose.Types.ObjectId, ref: "users", required: true }],
-    admin: { type: mongoose.Types.ObjectId, ref: "users", required: true },
-    messages: [
-      { type: mongoose.Types.ObjectId, ref: "messages", required: false },
-    ],
+    members: [{ type: Schema.Types.ObjectId, ref: "users", required: true }],
+    admin: { type: Schema.Types.ObjectId, ref: "users", required: true },
+    messages: [{ type: Schema.Types.ObjectId, ref: "messages" }],
   },
   { timestamps: true }
-); 
+);
 
-export const Channel = mongoose.model("channels", channel);
+export const Channel = model("channels", channel);

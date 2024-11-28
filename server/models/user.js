@@ -1,6 +1,5 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const Schema = mongoose.Schema;
 
 const user = new Schema({
   email: {
@@ -21,8 +20,14 @@ const user = new Schema({
     required: false,
   },
   image: {
-    type: Object,
-    required: false,
+    public_id: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
   },
   color: {
     type: Number,
@@ -34,4 +39,4 @@ const user = new Schema({
   },
 });
 
-export const User = mongoose.model("users", user);
+export const User = model("users", user);

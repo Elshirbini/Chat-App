@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { useEffect, useState } from "react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { useAppStore } from "@/store";
 import { HOST, LOGOUT_ROUTE } from "@/utils/constants";
@@ -13,19 +14,34 @@ import { FiEdit2 } from "react-icons/fi";
 import { IoPowerSharp } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "@/lib/api-client";
+
+import axios from "axios";
 export const ProfileInfo = () => {
-  const { userInfo , setUserInfo } = useAppStore();
+  const { userInfo, setUserInfo } = useAppStore();
+  const [userImage, setUserImage] = useState(null);
   const navigate = useNavigate();
+  async function getDataFromApi() {
+    const response = await axios.get(`${HOST}/api/auth/user-info`, {
+      withCredentials: true,
+    });
+    setUserImage(response.data.image.url);
+  }
+  useEffect(() => {
+    getDataFromApi();
+  }, []);
+
   const LogOut = async () => {
+    console.log(userInfo);
+
     try {
       const response = await apiClient.post(
         LOGOUT_ROUTE,
         {},
-        { withCredentials: true  }
+        { withCredentials: true }
       );
-      if(response.status === 200){
-        navigate('/auth')
-        setUserInfo(null)
+      if (response.status === 200) {
+        navigate("/auth");
+        setUserInfo(null);
       }
     } catch (error) {
       console.log(error);
@@ -34,11 +50,11 @@ export const ProfileInfo = () => {
   return (
     <div className="absolute bottom-0 h-16 flex items-center justify-between px-10 w-full bg-[#2a2b33]">
       <div className="flex gap-3 items-center justify-center">
-        <div className="w-12 h-12 relative">
+        <div className=" h-12 relative">
           <Avatar className="h-12 w-12  rounded-full overflow-hidden">
             {userInfo.image ? (
-              <AvatarImage
-                scr={`${HOST}/${userInfo.image}`}
+              <img
+                src={userImage}
                 alt="Profile"
                 className="object-cover w-full h-full bg-black"
               />
@@ -65,10 +81,9 @@ export const ProfileInfo = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <FiEdit2
-                className="text-purple-500 text-xl font-medium "
-                onClick={() => navigate("/profile")}
-              />
+              <a href="/profile">
+                <FiEdit2 className="text-purple-500 text-xl font-medium " />
+              </a>
             </TooltipTrigger>
             <TooltipContent className="bg-[#1c1b1e] border-none text-white">
               <p>Edit Profile</p>

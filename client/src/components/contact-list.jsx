@@ -1,7 +1,5 @@
 import { useAppStore } from "@/store";
 import { Avatar } from "./ui/avatar";
-import { HOST } from "@/utils/constants";
-import { AvatarImage } from "@radix-ui/react-avatar";
 import { getColor } from "@/lib/utils";
 
 /* eslint-disable no-unused-vars */
@@ -21,7 +19,9 @@ export const ContactList = ({ contacts, isChannel = false }) => {
     if (selectedChatData && selectedChatData._id !== contact._id) {
       setSelectedChatMessages([]);
     }
+    console.log(contacts);
   };
+
   return (
     <div className="mt-5">
       {contacts.map((contact) => (
@@ -38,8 +38,8 @@ export const ContactList = ({ contacts, isChannel = false }) => {
             {!isChannel && (
               <Avatar className="h-10 w-10  rounded-full overflow-hidden">
                 {contact.image ? (
-                  <AvatarImage
-                    scr={`${HOST}/${contact.image}`}
+                  <img
+                    src={contact.image.url}
                     alt="Profile"
                     className="object-cover w-full h-full bg-black"
                   />

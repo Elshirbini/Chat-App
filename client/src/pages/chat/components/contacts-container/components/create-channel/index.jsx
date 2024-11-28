@@ -1,4 +1,6 @@
 /* eslint-disable no-unused-vars */
+import { MultiSelect } from "react-multi-select-component";
+
 import {
   Tooltip,
   TooltipContent,
@@ -29,6 +31,9 @@ export const CreateChannel = () => {
     useAppStore();
   const [newChannelModal, setNewChannelModal] = useState(false);
   const [allContacts, setAllContacts] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [contact, setContact] = useState([]);
+
   const [selectedContacts, setSelectedContacts] = useState([]);
   const [channelName, setChannelName] = useState("");
   useEffect(() => {
@@ -37,10 +42,18 @@ export const CreateChannel = () => {
         withCredentials: true,
       });
       setAllContacts(response.data.contacts);
+      setContacts(response.data.contacts);
+
+      console.log(response.data.contacts);
     };
+    contacts.map((con) => {
+      setContact(con);
+      console.log(con);
+    });
 
     getData();
   }, []);
+
   const createChannel = async () => {
     try {
       if (channelName.length > 0 && selectedContacts.length > 0) {
@@ -50,7 +63,8 @@ export const CreateChannel = () => {
             name: channelName,
             members: selectedContacts.map((contact) => {
               console.log("selected Contact", selectedContacts);
-              return contact.value;
+              console.log(contact);
+              return contact;
             }),
           },
           { withCredentials: true }
@@ -99,9 +113,9 @@ export const CreateChannel = () => {
             />
           </div>
           <div>
-            <MultipleSelector
+            {/* <MultipleSelector
               className="rounded-lg bg-[#2c2e3b] border-none py-2 text-white"
-              defaultOptions={allContacts}
+              options={allContacts}
               placeholder="Search Contacts"
               value={selectedContacts}
               onChange={setSelectedContacts}
@@ -110,11 +124,18 @@ export const CreateChannel = () => {
                   No results found.
                 </p>
               }
+            /> */}
+            <pre>{JSON.stringify(selectedContacts)}</pre>
+            <MultiSelect
+              className="rounded-lg bg-[#2c2e3b] border-none py-2 text-white"
+              options={allContacts}
+              value={selectedContacts}
+              onChange={setSelectedContacts}
             />
           </div>
           <div>
             <button
-              className="w-full bg-purple-700 hover:bg-purple-900 translate-all duration-300"
+              className="w-full rounded p-2 bg-purple-700 hover:bg-purple-900 translate-all duration-300"
               onClick={createChannel}
             >
               Create Channel

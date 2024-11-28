@@ -1,9 +1,11 @@
 import bcrypt from "bcrypt";
+import asyncHandler from "express-async-handler";
 import { User } from "../models/user.js";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
 import nodemailer from "nodemailer";
-import { cloudinary } from "../utils/cloudinary.js";
+import { cloudinary } from "../config/cloudinary.js";
+import { ApiError } from "../utils/apiError.js";
 
 const maxAge = 3 * 24 * 60 * 60 * 1000;
 
@@ -15,242 +17,173 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const signup = async (req, res, next) => {
-  try {
-    const { email, password, confirmPassword } = req.body;
-    const errors = validationResult(req);
+export const signup = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+  const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    if (password !== confirmPassword) {
-      return res
-        .status(400)
-        .send("Password and confirm password should be equal");
-    }
-    const mailOptions = {
-      from: "ahmedalshirbini33@gmail.com",
-      to: email,
-      subject: "Welcome for you in my Syncronus Chat App",
-      text: " Your account Created Successfully",
-    };
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({
-      email,
-      password: hashedPassword,
-    });
-
-    await user.save();
-
-    const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
-      expiresIn: maxAge,
-    });
-    res.cookie("jwt", accessToken, {
-      maxAge,
-      secure: true,
-      sameSite: "None",
-    });
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent: " + info.response);
-      }
-    });
-    return res.status(201).json({
-      user: {
-        id: user._id,
-        email: user.email,
-        profileSetup: user.profileSetup,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
+  if (!errors.isEmpty()) {
+    throw new ApiError(errors.array()[0].msg, 400);
   }
-};
 
-export const login = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-  
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password is required",
-      });
+  // if (password.trim() !== confirmPassword.trim()) {
+  //   return next("Password and confirm password should be equal", 400);
+  // }
+  const mailOptions = {
+    from: "ahmedalshirbini33@gmail.com",
+    to: email,
+    subject: "Welcome for you in my Syncronus Chat App",
+    text: " Your account Created Successfully",
+  };
+  const hashedPassword = await bcrypt.hash(password, 12);
+  const user = await User.create({
+    email,
+    password: hashedPassword,
+  });
+
+  const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
+    expiresIn: maxAge,
+  });
+  res.cookie("jwt", accessToken, {
+    maxAge,
+    secure: true,
+    sameSite: "None",
+  });
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent: " + info.response);
     }
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-    const hashedPassword = await bcrypt.compare(password, user.password);
+  });
+  return res.status(201).json({
+    user: {
+      id: user._id,
+      email: user.email,
+      profileSetup: user.profileSetup,
+    },
+  });
+});
 
-    if (!hashedPassword) {
-      return res.status(404).json({
-        message: "Wrong Password",
-      });
-    }
+export const login = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
 
-    const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
-      expiresIn: maxAge,
-    });
-    res.cookie("jwt", accessToken, {
-      maxAge,
-      secure: true,
-      sameSite: "None",
-    });
-
-    return res.status(200).json({
-      user: {
-        id: user._id,
-        email: user.email,
-        profileSetup: user.profileSetup,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        image: user.image,
-        color: user.color,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
+  if (!email || !password) {
+    throw new ApiError("Email and password is required", 401);
   }
-};
+  const user = await User.findOne({ email: email });
+  if (!user) throw new ApiError("User not found", 404);
 
-export const getUserInfo = async (req, res, next) => {
-  try {
-    const { user } = req.user;
+  const hashedPassword = await bcrypt.compare(password, user.password);
 
+  if (!hashedPassword) throw new ApiError("Wrong password", 404);
 
-    const userData = await User.findById(user._id);
-    if (!userData) {
-      return res.status(404).send("User with the given id is not found");
-    }
+  const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
+    expiresIn: maxAge,
+  });
+  res.cookie("jwt", accessToken, {
+    maxAge,
+    secure: true,
+    sameSite: "None",
+  });
 
-    return res.status(200).json({
-      id: userData._id,
-      email: userData.email,
-      profileSetup: userData.profileSetup,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      image: userData.image,
-      color: userData.color,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
+  return res.status(200).json({
+    user: {
+      id: user._id,
+      email: user.email,
+      profileSetup: user.profileSetup,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      image: user.image,
+      color: user.color,
+    },
+  });
+});
+
+export const getUserInfo = asyncHandler(async (req, res, next) => {
+  const { user } = req.user;
+
+  const userData = await User.findById(user._id);
+  if (!userData) throw new ApiError("User with the given id is not found", 404);
+
+  return res.status(200).json({
+    id: userData._id,
+    email: userData.email,
+    profileSetup: userData.profileSetup,
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    image: userData.image,
+    color: userData.color,
+  });
+});
+
+export const updateProfile = asyncHandler(async (req, res, next) => {
+  const { firstName, lastName, color } = req.body;
+  const { user } = req.user;
+
+  if (!firstName || !lastName) {
+    throw new ApiError("First name and  last name is required.", 400);
   }
-};
+  const userData = await User.findByIdAndUpdate(
+    user._id,
+    {
+      firstName,
+      lastName,
+      color,
+      profileSetup: true,
+    },
+    { new: true, runValidators: true }
+  );
 
-export const updateProfile = async (req, res, next) => {
-  try {
-    const { firstName, lastName, color } = req.body;
-    const { user } = req.user;
+  return res.status(200).json({
+    id: userData._id,
+    email: userData.email,
+    profileSetup: userData.profileSetup,
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    image: userData.image,
+    color: userData.color,
+  });
+});
 
-    
-    if (!firstName || !lastName) {
-      return res.status(400).send("First name and  last name is required.");
-    }
-    const userData = await User.findByIdAndUpdate(
-      user._id,
-      {
-        firstName,
-        lastName,
-        color,
-        profileSetup: true,
-      },
-      { new: true, runValidators: true }
-    );
+export const addProfileImage = asyncHandler(async (req, res, next) => {
+  const { user } = req.user;
+  const image = req.file.path;
 
-    return res.status(200).json({
-      id: userData._id,
-      email: userData.email,
-      profileSetup: userData.profileSetup,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      image: userData.image,
-      color: userData.color,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-};
+  if (!req.file) throw new ApiError("File is required.", 400);
 
-export const addProfileImage = async (req, res, next) => {
-  try {
-    const { user } = req.user;
-    const image = req.file.path;
+  const result = await cloudinary.uploader.upload(image, {
+    folder: "ImageForChatUsers",
+  });
 
-    if (!req.file) {
-      return res.status(400).send("File is required.");
-    }
+  const userDoc = await User.findByIdAndUpdate(
+    user._id,
+    {
+      image: { public_id: result.public_id, url: result.url },
+    },
+    { new: true, runValidators: true }
+  );
 
-    const result = await cloudinary.uploader.upload(image, {
-      folder: "ImageForChatUsers",
-    });
+  return res.status(200).json({
+    image: {
+      public_id: userDoc.image.public_id,
+      url: userDoc.image.url,
+    },
+  });
+});
 
-    const userDoc = await User.findByIdAndUpdate(
-      user._id,
-      {
-        image: { public_id: result.public_id, url: result.url },
-      },
-      { new: true, runValidators: true }
-    );
+export const deleteProfileImage = asyncHandler(async (req, res, next) => {
+  const { user } = req.user;
 
-    return res.status(200).json({
-      image: {
-        public_id: userDoc.image.public_id,
-        url: userDoc.image.url,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-};
-export const deleteProfileImage = async (req, res, next) => {
-  try {
-    const { user } = req.user;
+  const userData = await User.findByIdAndUpdate(user._id, {
+    image: null,
+  });
+  if (!userData) throw new ApiError("User not found", 404);
+  cloudinary.uploader.destroy(userData.image.public_id);
 
-    const userData = await User.findByIdAndUpdate(user._id, {
-      image: null,
-    });
-    if (!userData) {
-      return res.status(404).json("User not found");
-    }
-    cloudinary.uploader.destroy(userData.image.public_id);
+  return res.status(200).json({ message: "Profile image has been deleted." });
+});
 
-    return res.status(200).send("Profile image has been deleted.");
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-};
-
-export const logout = async (req, res, next) => {
-  try {
-    res.cookie("jwt", "", { maxAge: 1, secure: true, sameSite: "None" });
-    return res.status(200).send("Logout Successfully");
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-};
+export const logout = asyncHandler(async (req, res, next) => {
+  res.cookie("jwt", "", { maxAge: 1, secure: true, sameSite: "None" });
+  return res.status(200).send("Logout Successfully");
+});

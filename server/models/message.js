@@ -1,17 +1,15 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const Schema = mongoose.Schema;
 
 const message = new Schema({
   sender: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "users",
     required: true,
   },
   recipient: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "users",
-    required: false,
   },
   messageType: {
     type: String,
@@ -36,4 +34,4 @@ const message = new Schema({
   },
 });
 
-export const Message = mongoose.model("messages", message);
+export const Message = model("messages", message);

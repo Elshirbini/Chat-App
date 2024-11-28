@@ -11,7 +11,7 @@ import {
 import { verifyToken } from "../middlewares/authMiddleware.js";
 import { body } from "express-validator";
 import { User } from "../models/user.js";
-import { upload } from "../utils/multer.js";
+import { upload } from "../config/multer.js";
 
 const router = express.Router();
 

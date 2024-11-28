@@ -37,15 +37,15 @@ export const Profile = () => {
     }
     return true;
   };
+  useEffect(() => {
+    setImage(userInfo.image?.url);
+  }, []);
 
   useEffect(() => {
     if (userInfo.profileSetup) {
       setFirstName(userInfo.firstName);
       setLastName(userInfo.lastName);
       setSelectedColor(userInfo.color);
-    }
-    if (userInfo.image) {
-      setImage(`${HOST}/${userInfo.image}`);
     }
   }, [userInfo]);
 
@@ -92,17 +92,13 @@ export const Profile = () => {
       });
       if (response.status === 200 && response.data.image) {
         console.log("response", response.data.image);
-        setUserInfo({ ...userInfo, image: response.data.image });
+        setUserInfo({ ...userInfo, image: response.data.url });
+        setImage(response.data.image.url);
+        setUserInfo({ ...userInfo, image: response.data.image.url });
+        console.log(userInfo.image);
         toast.success("Image Updated Successfully");
+        // window.location.reload();
       }
-      console.log("userInfo", userInfo);
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImage(reader.result);
-      };
-
-      reader.readAsDataURL(file);
-      console.log("reader", reader);
     }
   };
 
@@ -112,7 +108,7 @@ export const Profile = () => {
         withCredentials: true,
       });
       if (response.status === 200) {
-        setUserInfo({ ...userInfo, image: null });
+        // setUserInfo({ ...userInfo, image: null });
         toast.success("Image removed successfully");
         setImage(null);
       }
@@ -132,10 +128,11 @@ export const Profile = () => {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
           >
+            {/* <img src={image} alt="" /> */}
             <Avatar className="h-32 w-32 md:w-48 md:h-48 rounded-full overflow-hidden">
               {image ? (
                 <AvatarImage
-                  scr={image}
+                  src={image ? image : ""}
                   alt="Profile"
                   className="object-cover w-full h-full bg-black"
                 />

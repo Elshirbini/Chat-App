@@ -1,75 +1,54 @@
 import mongoose from "mongoose";
+import asyncHandler from "express-async-handler";
 import { Channel } from "../models/channel.js";
 import { User } from "../models/user.js";
+import { ApiError } from "../utils/apiError.js";
 
-export const createChannel = async (req, res, next) => {
-  try {
-    const { name, members } = req.body;
-    const { user } = req.user;
+export const createChannel = asyncHandler(async (req, res, next) => {
+  const { name, members } = req.body;
+  const { user } = req.user;
 
-    console.log("members", members);
-    const admin = await User.findById(user._id);
-    if (!admin) {
-      return res.status(400).send("Admin user not found.");
-    }
-    const validMembers = await User.find({ _id: { $in: members } });
-    console.log("validMembers", validMembers);
+  console.log("members", members);
+  const admin = await User.findById(user._id);
+  if (!admin) throw new ApiError("Admin user not found", 400);
 
-    if (validMembers.length !== members.length) {
-      return res.status(400).send("Some members are not valid users");
-    }
+  const validMembers = await User.find({ _id: { $in: members } });
+  console.log("validMembers", validMembers);
 
-    const newChannel = await Channel.create({
-      name,
-      members,
-      admin: user._id,
-    });
-
-    await newChannel.save();
-    return res.status(201).json({ channel: newChannel });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
+  if (validMembers.length !== members.length) {
+    throw new ApiError("Some members are not valid users", 400);
   }
-};
 
-export const getUserChannels = async (req, res, next) => {
-  try {
-    const { user } = req.user;
-    const userId = new mongoose.Types.ObjectId(user._id);
-    const channels = await Channel.find({
-      $or: [{ admin: userId }, { members: userId }],
-    }).sort({ updatedAt: -1 });
-    return res.status(200).json({ channels });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-};
+  const newChannel = await Channel.create({
+    name,
+    members,
+    admin: user._id,
+  });
 
-export const geChannelMessages = async (req, res, next) => {
-  try {
-    const { channelId } = req.params;
-    const channel = await Channel.findById(channelId).populate({
-      path: "messages",
-      populate: {
-        path: "sender",
-        select: "firstName lastName email _id image color",
-      },
-    });
-    if (!channel) {
-      return res.status(404).send("Channel Not Found.");
-    }
-    const messages = channel.messages;
-    return res.status(200).json({ messages });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-};
+  return res.status(201).json({ channel: newChannel });
+});
+
+export const getUserChannels = asyncHandler(async (req, res, next) => {
+  const { user } = req.user;
+  const userId = new mongoose.Types.ObjectId(user._id);
+  const channels = await Channel.find({
+    $or: [{ admin: userId }, { members: userId }],
+  }).sort({ updatedAt: -1 });
+  if (!channels) throw new ApiError("Channels not found.", 404);
+  return res.status(200).json({ channels });
+});
+
+export const geChannelMessages = asyncHandler(async (req, res, next) => {
+  const { channelId } = req.params;
+  const channel = await Channel.findById(channelId).populate({
+    path: "messages",
+    populate: {
+      path: "sender",
+      select: "firstName lastName email _id image color",
+    },
+  });
+  if (!channel) throw new ApiError("Channel not found", 404);
+
+  const messages = channel.messages;
+  return res.status(200).json({ messages });
+});

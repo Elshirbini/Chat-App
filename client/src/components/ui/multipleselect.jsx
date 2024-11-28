@@ -270,7 +270,7 @@ const MultipleSelector = React.forwardRef(
             {selected.map((option) => {
               return (
                 <Badge
-                  key={option.value}
+                  key={option.label}
                   className={cn(
                     "data-[disabled]:bg-muted-foreground data-[disabled]:text-muted data-[disabled]:hover:bg-muted-foreground bg-purple-500 p-2",
                     "data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground",
@@ -384,10 +384,10 @@ const MultipleSelector = React.forwardRef(
                     >
                       <>
                         {dropdowns.map((option) => {
-                          console.log(option.value);
+                          console.log(option);
                           return (
                             <CommandItem
-                              key={option.value}
+                              key={option.label}
                               value={option.value}
                               disabled={option.disable}
                               onMouseDown={(e) => {
@@ -401,6 +401,7 @@ const MultipleSelector = React.forwardRef(
                                 }
                                 setInputValue("");
                                 const newOptions = [...selected, option];
+                                console.log(newOptions);
                                 setSelected(newOptions);
                                 onChange?.(newOptions);
                               }}

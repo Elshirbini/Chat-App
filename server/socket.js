@@ -1,3 +1,4 @@
+import asyncHandler from "express-async-handler";
 import { Server as SockerIOServer } from "socket.io";
 import { Message } from "./models/message.js";
 import { Channel } from "./models/channel.js";
@@ -22,7 +23,7 @@ export const setupSocket = (server) => {
     }
   };
 
-  const sendMessage = async (message) => {
+  const sendMessage = asyncHandler(async (message) => {
     const senderSocketId = userSocketMap.get(message.sender);
     const recipientSocketId = userSocketMap.get(message.recipient);
 
@@ -38,9 +39,9 @@ export const setupSocket = (server) => {
     if (senderSocketId) {
       io.to(senderSocketId).emit("receiveMessage", messageData);
     }
-  };
+  });
 
-  const sendChannelMessage = async (message) => {
+  const sendChannelMessage = asyncHandler(async (message) => {
     const { channelId, sender, content, messageType, fileUrl } = message;
 
     const createdMessage = await Message.create({
@@ -75,7 +76,7 @@ export const setupSocket = (server) => {
         io.to(adminSocketId).emit("receive-channel-message", finalData);
       }
     }
-  };
+  });
 
   io.on("connection", (socket) => {
     const userId = socket.handshake.query.userId;
