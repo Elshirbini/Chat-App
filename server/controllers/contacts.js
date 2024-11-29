@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import asyncHandler from "express-async-handler";
 import { User } from "../models/user.js";
 import { Message } from "../models/message.js";
-import { ApiError } from "../utils/apiError.js";
 
 export const searchContacts = asyncHandler(async (req, res, next) => {
   const { searchTerm } = req.body;

@@ -13,7 +13,6 @@ const user = new Schema({
   },
   firstName: {
     type: String,
-    required: false,
   },
   lastName: {
     type: String,
@@ -31,7 +30,6 @@ const user = new Schema({
   },
   color: {
     type: Number,
-    required: false,
   },
   profileSetup: {
     type: Boolean,

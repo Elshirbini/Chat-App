@@ -26,7 +26,7 @@ export const signup = asyncHandler(async (req, res, next) => {
   }
 
   // if (password.trim() !== confirmPassword.trim()) {
-  //   return next("Password and confirm password should be equal", 400);
+  //   throw new ApiError("Password and confirm password should be equal", 400);
   // }
   const mailOptions = {
     from: "ahmedalshirbini33@gmail.com",
@@ -74,7 +74,6 @@ export const login = asyncHandler(async (req, res, next) => {
   if (!user) throw new ApiError("User not found", 404);
 
   const hashedPassword = await bcrypt.compare(password, user.password);
-
   if (!hashedPassword) throw new ApiError("Wrong password", 404);
 
   const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
@@ -134,6 +133,8 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
     { new: true, runValidators: true }
   );
 
+  if (!userData) throw new ApiError("User not found", 404);
+
   return res.status(200).json({
     id: userData._id,
     email: userData.email,
@@ -163,6 +164,8 @@ export const addProfileImage = asyncHandler(async (req, res, next) => {
     { new: true, runValidators: true }
   );
 
+  if (!userDoc) throw new ApiError("User not found", 404);
+
   return res.status(200).json({
     image: {
       public_id: userDoc.image.public_id,
@@ -174,10 +177,15 @@ export const addProfileImage = asyncHandler(async (req, res, next) => {
 export const deleteProfileImage = asyncHandler(async (req, res, next) => {
   const { user } = req.user;
 
-  const userData = await User.findByIdAndUpdate(user._id, {
-    image: null,
-  });
+  const userData = await User.findByIdAndUpdate(
+    user._id,
+    {
+      image: null,
+    },
+    { new: true, runValidators: true }
+  );
   if (!userData) throw new ApiError("User not found", 404);
+  
   cloudinary.uploader.destroy(userData.image.public_id);
 
   return res.status(200).json({ message: "Profile image has been deleted." });
