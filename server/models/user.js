@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
 
-
 const user = new Schema({
   email: {
     type: String,
@@ -11,13 +10,8 @@ const user = new Schema({
     type: String,
     required: [true, "password is required"],
   },
-  firstName: {
-    type: String,
-  },
-  lastName: {
-    type: String,
-    required: false,
-  },
+  firstName: String,
+  lastName: String,
   image: {
     public_id: {
       type: String,
@@ -28,9 +22,7 @@ const user = new Schema({
       required: true,
     },
   },
-  color: {
-    type: Number,
-  },
+  color: Number,
   profileSetup: {
     type: Boolean,
     default: false,
