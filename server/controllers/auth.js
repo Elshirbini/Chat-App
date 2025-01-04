@@ -6,34 +6,28 @@ import { validationResult } from "express-validator";
 import nodemailer from "nodemailer";
 import { cloudinary } from "../config/cloudinary.js";
 import { ApiError } from "../utils/apiError.js";
+import { sendToEmails } from "../utils/sendToEmails.js";
 
 const maxAge = 3 * 24 * 60 * 60 * 1000;
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "ahmedalshirbini33@gmail.com",
-    pass: "rvgedkbbviilneor",
-  },
-});
+const cookiesOptions = {
+  maxAge,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "None",
+};
 
 export const signup = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password, confirmPassword } = req.body;
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     throw new ApiError(errors.array()[0].msg, 400);
   }
 
-  // if (password.trim() !== confirmPassword.trim()) {
-  //   throw new ApiError("Password and confirm password should be equal", 400);
-  // }
-  const mailOptions = {
-    from: "ahmedalshirbini33@gmail.com",
-    to: email,
-    subject: "Welcome for you in my Syncronus Chat App",
-    text: " Your account Created Successfully",
-  };
+  if (password !== confirmPassword) {
+    throw new ApiError("Password and confirm password should be equal", 400);
+  }
+
   const hashedPassword = await bcrypt.hash(password, 12);
   const user = await User.create({
     email,
@@ -43,18 +37,15 @@ export const signup = asyncHandler(async (req, res, next) => {
   const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
     expiresIn: maxAge,
   });
-  res.cookie("jwt", accessToken, {
-    maxAge,
-    secure: true,
-    sameSite: "None",
-  });
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log("Email sent: " + info.response);
-    }
-  });
+
+  sendToEmails(
+    email,
+    "Welcome for you in my Syncronus Chat App",
+    "Your account Created Successfully"
+  );
+
+  res.cookie("jwt", accessToken, cookiesOptions);
+
   return res.status(201).json({
     user: {
       id: user._id,
@@ -79,11 +70,8 @@ export const login = asyncHandler(async (req, res, next) => {
   const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
     expiresIn: maxAge,
   });
-  res.cookie("jwt", accessToken, {
-    maxAge,
-    secure: true,
-    sameSite: "None",
-  });
+  
+  res.cookie("jwt", accessToken, cookiesOptions);
 
   return res.status(200).json({
     user: {
@@ -185,7 +173,7 @@ export const deleteProfileImage = asyncHandler(async (req, res, next) => {
     { new: true, runValidators: true }
   );
   if (!userData) throw new ApiError("User not found", 404);
-  
+
   cloudinary.uploader.destroy(userData.image.public_id);
 
   return res.status(200).json({ message: "Profile image has been deleted." });
