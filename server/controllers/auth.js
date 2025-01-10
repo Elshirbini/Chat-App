@@ -3,7 +3,6 @@ import asyncHandler from "express-async-handler";
 import { User } from "../models/user.js";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
-import nodemailer from "nodemailer";
 import { cloudinary } from "../config/cloudinary.js";
 import { ApiError } from "../utils/apiError.js";
 import { sendToEmails } from "../utils/sendToEmails.js";
