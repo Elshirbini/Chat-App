@@ -8,8 +8,10 @@ import {
 
 const router = express.Router();
 
-router.post("/create-channel", verifyToken, createChannel);
-router.get("/get-user-channels", verifyToken, getUserChannels);
-router.get("/get-channel-messages/:channelId", verifyToken, geChannelMessages);
+
+router.use(verifyToken);
+router.post("/create-channel", createChannel);
+router.get("/get-user-channels", getUserChannels);
+router.get("/get-channel-messages/:channelId", geChannelMessages);
 
 export const channelRoutes = router;

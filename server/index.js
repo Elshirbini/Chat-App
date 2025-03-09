@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import mongoose from "mongoose";
 import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean";
 import rateLimit from "express-rate-limit";
 import compression from "compression";
 import { authRoutes } from "./routes/auth.js";
@@ -14,6 +13,7 @@ import { messagesRoutes } from "./routes/message.js";
 import { channelRoutes } from "./routes/channel.js";
 import { ApiError } from "./utils/apiError.js";
 import { errorHandling } from "./middlewares/errorHandling.js";
+import helmet from "helmet";
 configDotenv();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,7 +32,7 @@ app.use("/uploads/files", express.static("uploads/files"));
 app.use(cookieParser());
 app.use(express.json());
 
-app.use(xss());
+app.use(helmet());
 app.use(mongoSanitize());
 const apiLimiter = rateLimit({
   max: 300,
@@ -51,10 +51,6 @@ app.use("/api", apiLimiter);
 app.use("/api/auth", loginLimiter);
 
 //                         **  ROUTES **
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactsRoutes);

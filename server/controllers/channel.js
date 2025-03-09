@@ -25,7 +25,7 @@ export const createChannel = asyncHandler(async (req, res, next) => {
     admin: user._id,
   });
 
-  return res.status(201).json({ channel: newChannel });
+  res.status(201).json({ channel: newChannel });
 });
 
 export const getUserChannels = asyncHandler(async (req, res, next) => {
@@ -35,7 +35,7 @@ export const getUserChannels = asyncHandler(async (req, res, next) => {
     $or: [{ admin: userId }, { members: userId }],
   }).sort({ updatedAt: -1 });
   if (!channels) throw new ApiError("Channels not found.", 404);
-  return res.status(200).json({ channels });
+  res.status(200).json({ channels });
 });
 
 export const geChannelMessages = asyncHandler(async (req, res, next) => {
@@ -50,5 +50,5 @@ export const geChannelMessages = asyncHandler(async (req, res, next) => {
   if (!channel) throw new ApiError("Channel not found", 404);
 
   const messages = channel.messages;
-  return res.status(200).json({ messages });
+  res.status(200).json({ messages });
 });

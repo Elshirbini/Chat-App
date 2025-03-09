@@ -11,8 +11,9 @@ const maxAge = 3 * 24 * 60 * 60 * 1000;
 
 const cookiesOptions = {
   maxAge,
+  httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "None",
+  sameSite: "strict",
 };
 
 export const signup = asyncHandler(async (req, res, next) => {
@@ -22,6 +23,7 @@ export const signup = asyncHandler(async (req, res, next) => {
   if (!errors.isEmpty()) {
     throw new ApiError(errors.array()[0].msg, 400);
   }
+  console.log(password, confirmPassword);
 
   if (password !== confirmPassword) {
     throw new ApiError("Password and confirm password should be equal", 400);
@@ -33,9 +35,11 @@ export const signup = asyncHandler(async (req, res, next) => {
     password: hashedPassword,
   });
 
-  const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
+  const accessToken = await jwt.sign({ user }, process.env.JWT_KEY, {
     expiresIn: maxAge,
   });
+
+  res.cookie("jwt", accessToken, cookiesOptions);
 
   sendToEmails(
     email,
@@ -43,9 +47,7 @@ export const signup = asyncHandler(async (req, res, next) => {
     "Your account Created Successfully"
   );
 
-  res.cookie("jwt", accessToken, cookiesOptions);
-
-  return res.status(201).json({
+  res.status(201).json({
     user: {
       id: user._id,
       email: user.email,
@@ -69,10 +71,10 @@ export const login = asyncHandler(async (req, res, next) => {
   const accessToken = jwt.sign({ user }, process.env.JWT_KEY, {
     expiresIn: maxAge,
   });
-  
+
   res.cookie("jwt", accessToken, cookiesOptions);
 
-  return res.status(200).json({
+  res.status(200).json({
     user: {
       id: user._id,
       email: user.email,
@@ -91,7 +93,7 @@ export const getUserInfo = asyncHandler(async (req, res, next) => {
   const userData = await User.findById(user._id);
   if (!userData) throw new ApiError("User with the given id is not found", 404);
 
-  return res.status(200).json({
+  res.status(200).json({
     id: userData._id,
     email: userData.email,
     profileSetup: userData.profileSetup,
@@ -107,7 +109,7 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
   const { user } = req.user;
 
   if (!firstName || !lastName) {
-    throw new ApiError("First name and  last name is required.", 400);
+    throw new ApiError("First name and last name is required.", 400);
   }
   const userData = await User.findByIdAndUpdate(
     user._id,
@@ -122,7 +124,7 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
 
   if (!userData) throw new ApiError("User not found", 404);
 
-  return res.status(200).json({
+  res.status(200).json({
     id: userData._id,
     email: userData.email,
     profileSetup: userData.profileSetup,
@@ -153,7 +155,7 @@ export const addProfileImage = asyncHandler(async (req, res, next) => {
 
   if (!userDoc) throw new ApiError("User not found", 404);
 
-  return res.status(200).json({
+  res.status(200).json({
     image: {
       public_id: userDoc.image.public_id,
       url: userDoc.image.url,
@@ -173,12 +175,14 @@ export const deleteProfileImage = asyncHandler(async (req, res, next) => {
   );
   if (!userData) throw new ApiError("User not found", 404);
 
-  cloudinary.uploader.destroy(userData.image.public_id);
+  if (userData.image.public_id) {
+    await cloudinary.uploader.destroy(userData.image.public_id);
+  }
 
-  return res.status(200).json({ message: "Profile image has been deleted." });
+  res.status(200).json({ message: "Profile image has been deleted." });
 });
 
 export const logout = asyncHandler(async (req, res, next) => {
-  res.cookie("jwt", "", { maxAge: 1, secure: true, sameSite: "None" });
-  return res.status(200).send("Logout Successfully");
+  res.clearCookie("jwt");
+  res.status(200).send("Logout Successfully");
 });

@@ -30,7 +30,7 @@ router.post(
       })
       .normalizeEmail(),
     body("password")
-      .isLength({ min: 5, max: 10 })
+      .isLength({ min: 5, max: 16 })
       .withMessage("Password length should be from 5 to 10 chars")
       .matches(/[a-z]/)
       .withMessage("Password should be contains chars from a to z ")

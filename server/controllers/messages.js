@@ -17,7 +17,11 @@ export const getMessages = asyncHandler(async (req, res, next) => {
       { sender: user2, recipient: user1 },
     ],
   }).sort({ timestamp: 1 });
-  return res.status(200).json({ messages });
+
+  if (!messages || messages.length === 0) {
+    throw new ApiError("No messages found", 404);
+  }
+  res.status(200).json({ messages });
 });
 
 export const uploadFile = asyncHandler(async (req, res, next) => {
@@ -27,5 +31,5 @@ export const uploadFile = asyncHandler(async (req, res, next) => {
   const fileName = `${fileDir}/${req.file.originalname}`;
   fs.mkdirSync(fileDir, { recursive: true });
   fs.renameSync(req.file.path, fileName);
-  return res.status(200).json({ filePath: fileName });
+  res.status(200).json({ filePath: fileName });
 });

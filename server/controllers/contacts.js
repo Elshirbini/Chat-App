@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import asyncHandler from "express-async-handler";
 import { User } from "../models/user.js";
 import { Message } from "../models/message.js";
+import { ApiError } from "../utils/apiError.js";
 
 export const searchContacts = asyncHandler(async (req, res, next) => {
   const { searchTerm } = req.body;
@@ -17,7 +18,11 @@ export const searchContacts = asyncHandler(async (req, res, next) => {
       },
     ],
   });
-  return res.status(200).json({ contacts });
+
+  if (!contacts || contacts.length === 0) {
+    throw new ApiError("No contacts found", 404);
+  }
+  res.status(200).json({ contacts });
 });
 
 export const getContactForDMList = asyncHandler(async (req, res, next) => {
@@ -71,7 +76,7 @@ export const getContactForDMList = asyncHandler(async (req, res, next) => {
     },
   ]);
 
-  return res.status(200).json({ contacts });
+  res.status(200).json({ contacts });
 });
 
 export const getAllContacts = asyncHandler(async (req, res, next) => {
@@ -85,6 +90,5 @@ export const getAllContacts = asyncHandler(async (req, res, next) => {
     label: user.firstName ? `${user.firstName} ${user.lastName}` : user.email,
     _id: user._id,
   }));
-  console.log(contacts);
-  return res.status(200).json({ contacts });
+  res.status(200).json({ contacts });
 });
