@@ -57,8 +57,9 @@ app.use("/api/contacts", contactsRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/channel", channelRoutes);
 
-app.all("*", (req, res, next) => {
-  next(new ApiError(`Can't find this route : ${req.originalUrl}`, 400));
+app.use((req, res, next) => {
+  const error = new ApiError(`Can't find this route: ${req.originalUrl}`, 404);
+  next(error);
 });
 
 app.use(errorHandling);
